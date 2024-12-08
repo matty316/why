@@ -117,11 +117,18 @@ impl Scanner {
     }
 
     fn check_keyword(bytes: &[u8]) -> Token {
-        let token_type;
+        let mut token_type = TokenType::Ident;
         let first = bytes[0];
         match first {
             b'f' => {
-                token_type = Self::rest(&bytes[1..], &[b'u', b'n', b'c'], TokenType::Func)
+                if bytes.len() > 1 {
+                    let second = bytes[1];
+                    if second == b'u' {
+                        token_type = Self::rest(&bytes[2..], &[b'n', b'c'], TokenType::Func)
+                    } else if second == b'a' {
+                        token_type = Self::rest(&bytes[2..], &[b'l', b's', b'e'], TokenType::False)
+                    }
+                }
             }
             b'i' => {
                 token_type = Self::rest(&bytes[1..], &[b'f'], TokenType::If)
@@ -132,9 +139,10 @@ impl Scanner {
             b'v' => {
                 token_type = Self::rest(&bytes[1..], &[b'a', b'r'], TokenType::Var)
             }
-            _ => { 
-                token_type = TokenType::Ident;
-            }      
+            b't' => {
+                token_type = Self::rest(&bytes[1..], &[b'r', b'u', b'e'], TokenType::True)
+            }
+            _ => (),
         }
 
         let string = String::from_utf8_lossy(bytes);
@@ -180,7 +188,7 @@ mod tests {
 
     #[test]
     fn scan() {
-        let input = "+-*/ = == != < > <= >= ! func var 10 223 5 num1 add _add add_me_up if else \"hell nah\"".to_string();
+        let input = "+-*/ = == != < > <= >= ! func var 10 223 5 num1 add _add add_me_up if else \"hell nah\" true false".to_string();
 
         let exp = vec![
             Scanner::make_token(TokenType::Plus, "+"),
@@ -207,6 +215,8 @@ mod tests {
             Scanner::make_token(TokenType::If, "if"),
             Scanner::make_token(TokenType::Else, "else"),
             Scanner::make_token(TokenType::Str, "hell nah"),
+            Scanner::make_token(TokenType::True, "true"),
+            Scanner::make_token(TokenType::False, "false"),
             Scanner::make_token(TokenType::Eof, ""),
         ];
 

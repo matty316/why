@@ -39,6 +39,8 @@ impl Parser {
         match self.current.token_type {
             TokenType::Num => Expr::Int { value: self.current.literal.parse::<i32>().unwrap() },
             TokenType::Str => Expr::Str { value: self.current.literal.clone() },
+            TokenType::True => Expr::Bool { value: true },
+            TokenType::False => Expr::Bool { value: false },
             _ => todo!(),
         }
     }
@@ -81,6 +83,22 @@ mod tests {
             if let Stmt::Expr { expr } = stmt {
                 if let Expr::Str { value } = expr {
                     assert_eq!(value, exp[i])
+                }
+            }
+        }
+    }
+    
+    #[test]
+    fn parse_bool() {
+        let sources = ["true", "false"];
+        let exp = [true, false];
+
+        for (i, s) in sources.iter().enumerate() {
+            let program = parse(s);
+            let stmt = &program.stmts[0];
+            if let Stmt::Expr { expr } = stmt {
+                if let Expr::Bool { value } = expr {
+                    assert_eq!(*value, exp[i])
                 }
             }
         }
