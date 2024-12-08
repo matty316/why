@@ -1,17 +1,18 @@
 use crate::token::{Token,TokenType};
 
-struct Scanner {
+#[derive(Clone)]
+pub struct Scanner {
     input: Vec<u8>,
     prev: usize,
     pos: usize
 }
 
 impl Scanner {
-    fn new(source: String) -> Scanner {
+    pub fn new(source: String) -> Scanner {
         Scanner { input: source.as_bytes().to_vec(), prev: 0, pos: 0 }
     }
 
-    fn scan_token(&mut self) -> Token {
+    pub fn scan_token(&mut self) -> Token {
         self.skip_whitespace();
 
         let c = self.read();
