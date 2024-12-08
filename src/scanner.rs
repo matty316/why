@@ -55,6 +55,8 @@ impl Scanner {
                 }
             }
             b'"' => self.read_string(),
+            b';' => Self::make_token(TokenType::Semicolon, ";"),
+            b'\n' => Self::make_token(TokenType::NewLine, ""),
             0 => Self::make_token(TokenType::Eof, ""),
             _ => {
                 if Self::is_alpha(c) {
@@ -70,7 +72,7 @@ impl Scanner {
 
     fn skip_whitespace(&mut self) {
         match self.peek() {
-            b' ' | b'\n' | b'\t' | b'\r' => { self.read(); }
+            b' ' | b'\t' | b'\r' => { self.read(); }
             _ => (),
         }
     }
@@ -188,13 +190,14 @@ mod tests {
 
     #[test]
     fn scan() {
-        let input = "+-*/ = == != < > <= >= ! func var 10 223 5 num1 add _add add_me_up if else \"hell nah\" true false".to_string();
+        let input = "+-*/; = == != < > <= >= ! func var 10 223 5 num1 add _add add_me_up if else \"hell nah\" true false\n".to_string();
 
         let exp = vec![
             Scanner::make_token(TokenType::Plus, "+"),
             Scanner::make_token(TokenType::Minus, "-"),
             Scanner::make_token(TokenType::Star, "*"),
             Scanner::make_token(TokenType::Slash, "/"),
+            Scanner::make_token(TokenType::Semicolon, ";"),
             Scanner::make_token(TokenType::Eq, "="),
             Scanner::make_token(TokenType::EqEq, "=="),
             Scanner::make_token(TokenType::NotEq, "!="),
@@ -217,13 +220,13 @@ mod tests {
             Scanner::make_token(TokenType::Str, "hell nah"),
             Scanner::make_token(TokenType::True, "true"),
             Scanner::make_token(TokenType::False, "false"),
+            Scanner::make_token(TokenType::NewLine, ""),
             Scanner::make_token(TokenType::Eof, ""),
         ];
 
         let mut s = Scanner::new(input);
         for tok in exp {
             let token = s.scan_token();
-            println!("{:?}", token.token_type);
             assert_eq!(tok.token_type, token.token_type);
             assert_eq!(tok.literal, token.literal)
         }
