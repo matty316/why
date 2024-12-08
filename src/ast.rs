@@ -1,5 +1,6 @@
 pub enum Expr {
-    Int { value: i32 }
+    Int { value: i32 },
+    Str { value: String }
 }
 
 pub enum Stmt {

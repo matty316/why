@@ -36,7 +36,11 @@ impl Parser {
     }
 
     fn parse_primary(&self) -> Expr {
-        Expr::Int { value: self.current.literal.parse::<i32>().unwrap() }
+        match self.current.token_type {
+            TokenType::Num => Expr::Int { value: self.current.literal.parse::<i32>().unwrap() },
+            TokenType::Str => Expr::Str { value: self.current.literal.clone() },
+            _ => todo!(),
+        }
     }
 
     fn read(&mut self) -> Token {
@@ -49,15 +53,14 @@ impl Parser {
 #[cfg(test)]
 mod tests {
     use super::*;
+    
     #[test]
     fn parse_int() {
-        let source = ["1", "23", "2334523"];
+        let sources = ["1", "23", "2334523"];
         let exp: Vec<i32> = vec![1, 23, 2334523];
 
-        for (i, s) in source.iter().enumerate() {
-            let scanner = Scanner::new(s.to_string());
-            let mut p = Parser::new(scanner);
-            let program = p.parse();
+        for (i, s) in sources.iter().enumerate() {
+            let program = parse(s);
             let stmt = &program.stmts[0];
             if let Stmt::Expr { expr } = stmt {
                 if let Expr::Int { value } = expr {
@@ -65,5 +68,27 @@ mod tests {
                 }
             }
         }
+    }
+
+    #[test]
+    fn parse_string() {
+        let sources = ["\"hell\"", "\"hell yeah\"", "\"long ahhhh string, not really that long tbh\""];
+        let exp = ["hell", "hell yeah", "long ahhhh string, not really that long tbh"];
+
+        for (i, s) in sources.iter().enumerate() {
+            let program = parse(s);
+            let stmt = &program.stmts[0];
+            if let Stmt::Expr { expr } = stmt {
+                if let Expr::Str { value } = expr {
+                    assert_eq!(value, exp[i])
+                }
+            }
+        }
+    }
+
+    fn parse(input: &str) -> Program {
+        let scanner = Scanner::new(input.to_string());
+        let mut p = Parser::new(scanner);
+        p.parse()
     }
 }
