@@ -6,6 +6,6 @@ pub struct Token {
 
 #[derive(Debug, PartialEq, Clone)]
 pub enum TokenType {
-    Plus, Minus, Star, Slash, Eq, EqEq, NotEq, Lt, Gt, LtEq, GtEq, Bang, Num, Str, Ident, Func, Var, If, Else, True, False, NewLine, Semicolon, Eof
+    Plus, Minus, Star, Slash, LParen, RParen, LBrace, RBrace, Comma, Eq, EqEq, NotEq, Lt, Gt, LtEq, GtEq, Bang, Num, Str, Ident, Func, Var, If, Else, True, False, NewLine, Semicolon, Eof
 }
 

@@ -22,6 +22,11 @@ impl Scanner {
             b'-' => Self::make_token(TokenType::Minus, "-"),
             b'*' => Self::make_token(TokenType::Star, "*"),
             b'/' => Self::make_token(TokenType::Slash, "/"),
+            b'(' => Self::make_token(TokenType::LParen, "("),
+            b')' => Self::make_token(TokenType::RParen, ")"),
+            b'{' => Self::make_token(TokenType::LBrace, "{"),
+            b'}' => Self::make_token(TokenType::RBrace, "}"),
+            b',' => Self::make_token(TokenType::Comma, ","),
             b'=' => {
                 if self.peek() == b'=' {
                     self.read();
@@ -190,7 +195,7 @@ mod tests {
 
     #[test]
     fn scan() {
-        let input = "+-*/; = == != < > <= >= ! func var 10 223 5 num1 add _add add_me_up if else \"hell nah\" true false\n".to_string();
+        let input = "+-*/;(),{} = == != < > <= >= ! func var 10 223 5 num1 add _add add_me_up if else \"hell nah\" true false\n".to_string();
 
         let exp = vec![
             Scanner::make_token(TokenType::Plus, "+"),
@@ -198,6 +203,11 @@ mod tests {
             Scanner::make_token(TokenType::Star, "*"),
             Scanner::make_token(TokenType::Slash, "/"),
             Scanner::make_token(TokenType::Semicolon, ";"),
+            Scanner::make_token(TokenType::LParen, "("),
+            Scanner::make_token(TokenType::RParen, ")"),
+            Scanner::make_token(TokenType::Comma, ","),
+            Scanner::make_token(TokenType::LBrace, "{"),
+            Scanner::make_token(TokenType::RBrace, "}"),
             Scanner::make_token(TokenType::Eq, "="),
             Scanner::make_token(TokenType::EqEq, "=="),
             Scanner::make_token(TokenType::NotEq, "!="),

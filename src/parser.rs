@@ -53,7 +53,47 @@ impl Parser {
         Stmt::Expr { expr }
     }
 
+    fn parse_func(&mut self) -> Expr {
+        self.expect(TokenType::Func);
+        self.read();
+        let name = self.current.literal.clone();
+        self.read();
+        let params = self.parse_params();
+        let body = self.parse_block();
+        self.read();
+        Expr::Func { name, params, body }
+    }
+
+    fn parse_params(&mut self) -> Vec<String> {
+        self.expect(TokenType::LParen);
+        let mut params = vec![];
+        while self.current.token_type != TokenType::RParen {
+            let param = self.current.literal.clone();
+            params.push(param);
+            self.read();
+            if self.current.token_type == TokenType::Comma {
+                self.read();
+            }
+        }
+        self.expect(TokenType::RParen);
+
+        params
+    }
+
+    fn parse_block(&mut self) -> Vec<Stmt> {
+        let mut stmts: Vec<Stmt> = vec![];
+        self.expect(TokenType::LBrace);
+        while self.current.token_type != TokenType::RBrace {
+            let stmt = self.parse_stmt();
+            stmts.push(stmt);
+        }
+        stmts
+    }
+
     fn parse_expr(&mut self) -> Expr {
+        if self.current.token_type == TokenType::Func {
+            return self.parse_func();
+        }
         self.parse_term()
     }
 
@@ -96,6 +136,14 @@ impl Parser {
         let prev = self.current.clone();
         self.current = self.scanner.scan_token();
         prev
+    }
+
+    fn expect(&mut self, token: TokenType) {
+        if self.current.token_type == token {
+            self.read();
+            return
+        }
+        panic!() //TODO: real error handling
     }
 }
 
@@ -191,6 +239,42 @@ mod tests {
                 }
                 assert_eq!(op, "+");
             }
+        }
+    }
+
+    #[test]
+    fn parse_func() {
+        let source = "func add(a, b) { a + b }";
+        let program = parse(source);
+        let stmt = &program.stmts[0];
+        if let Stmt::Expr { expr } = stmt {
+            if let Expr::Func { name, params, body } = expr {
+                assert_eq!(name, "add");
+                assert_eq!(params.len(), 2);
+                assert_eq!(params[0], "a");
+                assert_eq!(params[1], "b");
+                if let Stmt::Expr { expr } = &body[0] {
+                    if let Expr::Binary { left, right, op } = expr {
+                        let left_val = left.clone();
+                        let right_val = right.clone();
+                        if let Expr::Name { value } = *left_val {
+                            assert_eq!(value.clone(), "a");
+                        }
+                        if let Expr::Name { value } = *right_val {
+                            assert_eq!(value.clone(), "b");
+                        }
+                        assert_eq!(op, "+");
+                    } else {
+                        panic!();
+                    }
+                } else {
+                    panic!();
+                }
+            } else {
+                panic!();
+            }
+        } else {
+            panic!();
         }
     }
 
