@@ -159,10 +159,14 @@ mod tests {
         for (i, s) in sources.iter().enumerate() {
             let program = parse(s);
             let stmt = &program.stmts[0];
-            if let Stmt::Expr { expr } = stmt {
-                if let Expr::Int { value } = expr {
-                    assert_eq!(*value, exp[i])
-                }
+            let expr = match stmt {
+                Stmt::Expr { expr } => expr,
+                _ => panic!(),
+            };
+
+            match expr {
+                Expr::Int { value } => assert_eq!(*value, exp[i]),
+                _ => panic!(),
             }
         }
     }
@@ -175,10 +179,14 @@ mod tests {
         for (i, s) in sources.iter().enumerate() {
             let program = parse(s);
             let stmt = &program.stmts[0];
-            if let Stmt::Expr { expr } = stmt {
-                if let Expr::Str { value } = expr {
-                    assert_eq!(value, exp[i])
-                }
+            let expr = match stmt {
+                Stmt::Expr { expr } => expr,
+                _ => panic!(),
+            };
+
+            match expr {
+                Expr::Str { value } => assert_eq!(*value, exp[i]),
+                _ => panic!(),
             }
         }
     }
@@ -191,10 +199,14 @@ mod tests {
         for (i, s) in sources.iter().enumerate() {
             let program = parse(s);
             let stmt = &program.stmts[0];
-            if let Stmt::Expr { expr } = stmt {
-                if let Expr::Bool { value } = expr {
-                    assert_eq!(*value, exp[i])
-                }
+            let expr = match stmt {
+                Stmt::Expr { expr } => expr,
+                _ => panic!(),
+            };
+
+            match expr {
+                Expr::Bool { value } => assert_eq!(*value, exp[i]),
+                _ => panic!(),
             }
         }
     }
@@ -204,11 +216,16 @@ mod tests {
         let source = "var x = 42";
         let program = parse(source);
         let stmt = &program.stmts[0];
-        if let Stmt::Var { name, expr } = stmt {
-            assert_eq!(name, "x");
-            if let Expr::Int { value } = expr {
-                assert_eq!(*value, 42);
-            }
+        let (name, expr) = match stmt {
+            Stmt::Var { name, expr } => (name, expr),
+            _ => panic!(),
+        };
+
+        assert_eq!(name, "x");
+
+        match expr {
+            Expr::Int { value } => assert_eq!(*value, 42),
+            _ => panic!(),
         }
     }
 
@@ -217,10 +234,14 @@ mod tests {
         let source = "foo";
         let program = parse(source);
         let stmt = &program.stmts[0];
-        if let Stmt::Expr { expr } = stmt {
-            if let Expr::Name { value } = expr {
-                assert_eq!(value, "foo");
-            }
+        let expr = match stmt {
+            Stmt::Expr { expr } => expr,
+            _ => panic!(),
+        };
+
+        match expr {
+            Expr::Name { value } => assert_eq!(*value, "foo".to_string()),
+            _ => panic!(),
         }
     }
 
@@ -229,16 +250,26 @@ mod tests {
         let source = "1 + 2";
         let program = parse(source);
         let stmt = &program.stmts[0];
-        if let Stmt::Expr { expr } = stmt {
-            if let Expr::Binary { left, right, op } = expr {
-                if let Expr::Int { value } = **left {
-                    assert_eq!(value, 1);
-                }
-                if let Expr::Int { value } = **right {
-                    assert_eq!(value, 2);
-                }
-                assert_eq!(op, "+");
-            }
+        let expr = match stmt {
+            Stmt::Expr { expr } => expr,
+            _ => panic!(),
+        };
+
+        let (left, right, op) = match expr {
+            Expr::Binary {left, right, op} => (left, right, op),
+            _ => panic!(),
+        };
+
+        assert_eq!(op, "+");
+
+        match *left.clone() {
+            Expr::Int { value } => assert_eq!(value, 1),
+            _ => panic!(),
+        }
+
+        match *right.clone() {
+            Expr::Int { value } => assert_eq!(value, 2),
+            _ => panic!(),
         }
     }
 
@@ -247,34 +278,41 @@ mod tests {
         let source = "func add(a, b) { a + b }";
         let program = parse(source);
         let stmt = &program.stmts[0];
-        if let Stmt::Expr { expr } = stmt {
-            if let Expr::Func { name, params, body } = expr {
-                assert_eq!(name, "add");
-                assert_eq!(params.len(), 2);
-                assert_eq!(params[0], "a");
-                assert_eq!(params[1], "b");
-                if let Stmt::Expr { expr } = &body[0] {
-                    if let Expr::Binary { left, right, op } = expr {
-                        let left_val = left.clone();
-                        let right_val = right.clone();
-                        if let Expr::Name { value } = *left_val {
-                            assert_eq!(value.clone(), "a");
-                        }
-                        if let Expr::Name { value } = *right_val {
-                            assert_eq!(value.clone(), "b");
-                        }
-                        assert_eq!(op, "+");
-                    } else {
-                        panic!();
-                    }
-                } else {
-                    panic!();
-                }
-            } else {
-                panic!();
-            }
-        } else {
-            panic!();
+        let expr = match stmt {
+            Stmt::Expr { expr } => expr,
+            _ => panic!(),
+        };
+
+        let (name, params, body) = match expr {
+            Expr::Func { name, params, body } => (name, params, body),
+            _ => panic!(),
+        };
+
+        assert_eq!(name, "add");
+        assert_eq!(params.len(), 2);
+        assert_eq!(params[0], "a");
+        assert_eq!(params[1], "b");
+
+        let body_stmt = &body[0];
+        let body_expr = match body_stmt {
+            Stmt::Expr { expr } => expr,
+            _ => panic!(),
+        };
+
+        let (left, right, op) = match body_expr {
+            Expr::Binary { left, right, op } => (left, right, op),
+            _ => panic!(),
+        };
+
+        assert_eq!(op, "+");
+        match *left.clone() {
+            Expr::Name { value } => assert_eq!(value, "a"),
+            _ => panic!(),
+        }
+
+        match *right.clone() {
+            Expr::Name { value } => assert_eq!(value, "b"),
+            _ => panic!(),
         }
     }
 
